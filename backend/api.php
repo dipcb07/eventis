@@ -13,7 +13,7 @@ switch ($endpoint) {
         $data = get_data($method, $required_parameters);
 
         if (!$data) {
-            log_request($pdo, null, $method, 'Failed', $endpoint, 'missing parameter');
+            log_request($pdo, $username, $method, 'Failed', $endpoint, 'missing parameter');
             handle_response(400, 'Missing parameters');
         }            
         
@@ -22,7 +22,7 @@ switch ($endpoint) {
         $response = json_decode($response, true);
         
         if ($response['status'] === 'error') {
-            log_request($pdo, null, $method, 'Failed', $endpoint, $response['message']);
+            log_request($pdo, $username, $method, 'Failed', $endpoint, $response['message']);
             handle_response(500, $response['message']);
         }
         
@@ -38,17 +38,17 @@ switch ($endpoint) {
         $data = get_data($method, $required_parameters);
 
         if (!$data) {
-            log_request($pdo, null, $method, 'Failed', $endpoint, 'Missing required parameters');
+            log_request($pdo, $username, $method, 'Failed', $endpoint, 'Missing required parameters');
             handle_response(400, 'Missing required parameters');
         }            
 
         $response = $user->update($data['unique_id'], $data);
         $response = json_decode($response, true);
         if ($response['status'] === 'error') {
-            log_request($pdo, null, $method, 'Failed', $endpoint, $response['message']);
+            log_request($pdo, $username, $method, 'Failed', $endpoint, $response['message']);
             handle_response(500, $response['message']);
         }
-        log_request($pdo, null, $method, 'Failed', $endpoint, 'user updated');
+        log_request($pdo, $username, $method, 'Success', $endpoint, 'user updated');
         handle_response(200, "user updated successfully");
         break;
 
@@ -57,44 +57,34 @@ switch ($endpoint) {
         $required_parameters = ['unique_id'];
         $data = get_data($method, $required_parameters);
         if (!$data) {
-            log_request($pdo, null, $method, 'Failed', $endpoint, 'Missing required parameters');
+            log_request($pdo, $username, $method, 'Failed', $endpoint, 'Missing required parameters');
             handle_response(400, 'Missing required parameters');
         }
         $response = $user->delete($data['unique_id']);
         $response = json_decode($response, true);
         if ($response['status'] === 'error') {
-            log_request($pdo, null, $method, 'Failed', $endpoint, $response['message']);
+            log_request($pdo, $username, $method, 'Failed', $endpoint, $response['message']);
             handle_response(500, $response['message']);
         }
-        log_request($pdo, null, $method, 'Failed', $endpoint, 'user deleted');
+        log_request($pdo, $username, $method, 'Success', $endpoint, 'user deleted');
         handle_response(200, "user deleted successfully");
         break;
 
     case 'user_login':
         $user = new api\User($pdo);
-        $required_parameters = ['password'];
+        $required_parameters = ['username', 'password'];
         $data = get_data($method, $required_parameters);
         if (!$data) {
-            log_request($pdo, null, $method, 'Failed', $endpoint, 'Missing required parameters');
+            log_request($pdo, $username, $method, 'Failed', $endpoint, 'Missing required parameters');
             handle_response(400, 'Missing required parameters');
         }
-        if(isset($data['username']) && !empty($data['username'])){
-            $user_name = $data['username'];
-        }
-        elseif(isset($data['email']) && !empty($data['email'])){
-            $user_name = $data['email'];
-        }
-        else{
-            log_request($pdo, null, $method, 'Failed', $endpoint, 'Missing required parameters');
-            handle_response(400, 'Missing required parameters');
-        }
-        $response = $user->authenticate($user_name, $data['password']);
+        $response = $user->authenticate($data['username'], $data['password']);
         $response = json_decode($response, true);
         if ($response['status'] === 'error') {
-            log_request($pdo, null, $method, 'Failed', $endpoint, $response['message']);
+            log_request($pdo, $username, $method, 'Failed', $endpoint, $response['message']);
             handle_response(500, $response['message']);
         }
-        log_request($pdo, null, $method, 'Failed', $endpoint, 'user logged in');
+        log_request($pdo, $username, $method, 'Success', $endpoint, 'user logged in');
         handle_response(200, "user logged in successfully", ['user_id' => $response['user_id'], 'session_id' => $response['session_id']]);
         break;
 
@@ -108,10 +98,10 @@ switch ($endpoint) {
             $response = $event->create($unique_id, $data['user_id'], $data['name'], $data['description'], $data['start_date_time'], $data['end_date_time'], $data['max_capacity']);
             $response = json_decode($response, true);
             if ($response['status'] === 'error') {
-                log_request($pdo, null, $method, 'Failed', $endpoint, $response['message']);
+                log_request($pdo, $username, $method, 'Failed', $endpoint, $response['message']);
                 handle_response(500, $response['message']);
             }
-            log_request($pdo, null, $method, 'Failed', $endpoint, 'event created');
+            log_request($pdo, $username, $method, 'Success', $endpoint, 'event created');
             handle_response(200, "event created successfully", ['event_id' => $unique_id]);
         }
         break;
@@ -121,16 +111,16 @@ switch ($endpoint) {
         $required_parameters = ['unique_id'];
         $data = get_data($method, $required_parameters);
         if (!$data) {
-            log_request($pdo, null, $method, 'Failed', $endpoint, 'Missing required parameters');
+            log_request($pdo, $username, $method, 'Failed', $endpoint, 'Missing required parameters');
             handle_response(400, 'Missing required parameters');
         }
         $response = $event->update($data['unique_id'], $data);
         $response = json_decode($response, true);
         if ($response['status'] === 'error') {
-            log_request($pdo, null, $method, 'Failed', $endpoint, $response['message']);
+            log_request($pdo, $username, $method, 'Failed', $endpoint, $response['message']);
             handle_response(500, $response['message']);
         }
-        log_request($pdo, null, $method, 'Failed', $endpoint, 'event updated');
+        log_request($pdo, $username, $method, 'Success', $endpoint, 'event updated');
         handle_response(200, "event updated successfully");
         break;
         
@@ -139,16 +129,16 @@ switch ($endpoint) {
         $required_parameters = ['unique_id'];
         $data = get_data($method, $required_parameters);
         if (!$data) {
-            log_request($pdo, null, $method, 'Failed', $endpoint, 'Missing required parameters');
+            log_request($pdo, $username, $method, 'Failed', $endpoint, 'Missing required parameters');
             handle_response(400, 'Missing required parameters');
         }
         $response = $event->delete($data['unique_id']);
         $response = json_decode($response, true);
         if ($response['status'] === 'error') {
-            log_request($pdo, null, $method, 'Failed', $endpoint, $response['message']);
+            log_request($pdo, $username, $method, 'Failed', $endpoint, $response['message']);
             handle_response(500, $response['message']);
         }
-        log_request($pdo, null, $method, 'Failed', $endpoint, 'event deleted');
+        log_request($pdo, $username, $method, 'Success', $endpoint, 'event deleted');
         handle_response(200, "event deleted successfully");
         break;
         
@@ -157,10 +147,11 @@ switch ($endpoint) {
         $required_parameters = ['unique_id'];
         $data = get_data($method, $required_parameters);
         if (!$data) {
-            log_request($pdo, null, $method, 'Failed', $endpoint, 'Missing required parameters');
+            log_request($pdo, $username, $method, 'Failed', $endpoint, 'Missing required parameters');
             handle_response(400, 'Missing required parameters');
         }
         $response = $event->listEvents();
+        log_request($pdo, $username, $method, 'Success', $endpoint, 'List of events');
         handle_response(200, 'List of events', $response);
         break;
     
@@ -172,10 +163,10 @@ switch ($endpoint) {
         $response = $attendee->register($unique_id, $data['event_id'], $data['name'], $data['email']);
         $response = json_decode($response, true);
         if ($response['status'] === 'error') {
-            log_request($pdo, null, $method, 'Failed', $endpoint, $response['message']);
+            log_request($pdo, $username, $method, 'Failed', $endpoint, $response['message']);
             handle_response(500, $response['message']);
         }
-        log_request($pdo, null, $method, 'Failed', $endpoint, 'attendee registered');
+        log_request($pdo, $username, $method, 'Success', $endpoint, 'attendee registered');
         handle_response(200, "attendee registered successfully", ['attendee_id' => $unique_id]);
         break;
         
@@ -184,16 +175,16 @@ switch ($endpoint) {
         $required_parameters = ['unique_id'];
         $data = get_data($method, $required_parameters);
         if (!$data) {
-            log_request($pdo, null, $method, 'Failed', $endpoint, 'Missing required parameters');
+            log_request($pdo, $username, $method, 'Failed', $endpoint, 'Missing required parameters');
             handle_response(400, 'Missing required parameters');
         }
         $response = $attendee->update($data['unique_id'], $data['name'], $data['email'], $data['is_active']);
         $response = json_decode($response, true);
         if ($response['status'] === 'error') {
-            log_request($pdo, null, $method, 'Failed', $endpoint, $response['message']);
+            log_request($pdo, $username, $method, 'Failed', $endpoint, $response['message']);
             handle_response(500, $response['message']);
         }
-        log_request($pdo, null, $method, 'Failed', $endpoint, 'attendee updated');
+        log_request($pdo, $username, $method, 'Success', $endpoint, 'attendee updated');
         handle_response(200, "attendee updated successfully");
         break;
         
@@ -202,16 +193,16 @@ switch ($endpoint) {
         $required_parameters = ['unique_id'];
         $data = get_data($method, $required_parameters);
         if (!$data) {
-            log_request($pdo, null, $method, 'Failed', $endpoint, 'Missing required parameters');
+            log_request($pdo, $username, $method, 'Failed', $endpoint, 'Missing required parameters');
             handle_response(400, 'Missing required parameters');
         }
         $response = $attendee->delete($data['unique_id']);
         $response = json_decode($response, true);
         if ($response['status'] === 'error') {
-            log_request($pdo, null, $method, 'Failed', $endpoint, $response['message']);
+            log_request($pdo, $username, $method, 'Failed', $endpoint, $response['message']);
             handle_response(500, $response['message']);
         }
-        log_request($pdo, null, $method, 'Failed', $endpoint, 'attendee deleted');
+        log_request($pdo, $username, $method, 'Success', $endpoint, 'attendee deleted');
         handle_response(200, "attendee deleted successfully");
         break;
         
@@ -220,10 +211,11 @@ switch ($endpoint) {
         $required_parameters = ['event_id'];
         $data = get_data($method, $required_parameters);
         if (!$data) {
-            log_request($pdo, null, $method, 'Failed', $endpoint, 'Missing required parameters');
+            log_request($pdo, $username, $method, 'Failed', $endpoint, 'Missing required parameters');
             handle_response(400, 'Missing required parameters');
         }
         $response = $attendee->listAttendees($data['event_id']);
+        log_request($pdo, $username, $method, 'Success', $endpoint, 'List of attendees');
         handle_response(200, 'List of attendees', $response);
         break;
     default:
