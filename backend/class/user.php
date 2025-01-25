@@ -162,6 +162,18 @@ class User {
             return json_encode(['status' => 'error', 'message' => 'Invalid username or password'], JSON_UNESCAPED_UNICODE);
         }
     }
+    public function username_duplicate_check($username){
+        $sql = "SELECT COUNT(*) FROM {$this->table} WHERE username = :username";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':username' => $username]);
+        return ($stmt->fetchColumn() > 0) ? true : false;
+    }
+    public function email_duplicate_check($email){
+        $sql = "SELECT COUNT(*) FROM {$this->table} WHERE email = :email";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':email' => $email]);
+        return ($stmt->fetchColumn() > 0) ? true : false;
+    }
     
     private function generateSessionCode() {
         $timestamp = time();

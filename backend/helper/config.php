@@ -18,7 +18,7 @@ $dbName = $_ENV['DATABASE_NAME'] ?? 'eventis';
 $dbcharset = $_ENV['DATABASE_CHARSET'] ?? 'utf8mb4';
 
 $allowed_methods = ['GET', 'POST'];
-$allowed_endpoints = ['user_create', 'user_update', 'user_delete', 'user_login', 'event_create', 'event_update', 'event_delete', 'attendee_register','attendee_update', 'attendee_delete', 'attendee_list'];
+$allowed_endpoints = ['user_create', 'user_update', 'user_delete', 'user_login', 'user_username_check', 'user_email_check', 'event_create', 'event_update', 'event_delete', 'attendee_register','attendee_update', 'attendee_delete', 'attendee_list'];
 
 set_default_timezone($timezone);
 $pdo = get_db($dbHost, $dbUser, $dbPassword, $dbName, $dbcharset);

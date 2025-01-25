@@ -87,7 +87,43 @@ switch ($endpoint) {
         log_request($pdo, $username, $method, 'Success', $endpoint, 'user logged in');
         handle_response(200, "user logged in successfully", ['user_id' => $response['user_id'], 'session_id' => $response['session_id']]);
         break;
-
+    case 'user_username_check':
+        $user = new api\User($pdo);
+        $required_parameters = ['username'];
+        $data = get_data($method, $required_parameters);
+        if (!$data) {
+            log_request($pdo, $username, $method, 'Failed', $endpoint, 'Missing required parameters');
+            handle_response(400, 'Missing required parameters');
+        }
+        $response = $user->username_duplicate_check($data['username']);
+        if($response){
+            log_request($pdo, $username, $method, 'Success', $endpoint, 'username checked');
+            handle_response(200, "username exist", ['exist' => true]);
+        }
+        else{
+            log_request($pdo, $username, $method, 'Failed', $endpoint, 'username not found');
+            handle_response(200, 'username not found', ['exist' => false]);
+        }
+        break;
+    
+    case 'user_email_check':
+        $user = new api\User($pdo);
+        $required_parameters = ['email'];
+        $data = get_data($method, $required_parameters);
+        if (!$data) {
+            log_request($pdo, $username, $method, 'Failed', $endpoint, 'Missing required parameters');
+            handle_response(400, 'Missing required parameters');
+        }
+        $response = $user->email_duplicate_check($data['email']);
+        if($response){
+            log_request($pdo, $username, $method, 'Success', $endpoint, 'username checked');
+            handle_response(200, "email exist", ['exist' => true]);
+        }
+        else{
+            log_request($pdo, $username, $method, 'Failed', $endpoint, 'email not found');
+            handle_response(200, 'email not found', ['exist' => false]);
+        }
+        break;
     case 'event_create':
         $event = new api\Event($pdo);
         if ($method === 'POST') {
