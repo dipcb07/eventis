@@ -1,0 +1,2 @@
+RewriteEngine On
+RewriteRule ^backend/api/(.*)$ backend/api.php/$1 [L,QSA]
