@@ -6,7 +6,6 @@ require_once 'helper.php';
 $api_key = $_ENV['HEADLESS_API_KEY'];
 $api_username = $_ENV['HEADLESS_API_USERNAME'];
 $api_url = $_ENV['APP_URL'];
-$pdo = get_db($_ENV['DATABASE_HOST'], $_ENV['DATABASE_USER'], $_ENV['DATABASE_PASSWORD'], $_ENV['DATABASE_NAME'], $_ENV['DATABASE_CHARSET']);    
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['check_username'])) {
@@ -27,10 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo $response;
         exit;
     }
-    
-    if (isset($_POST['login'])) {
+
+    if (isset($_POST['submit_reset'])) {
         if (!empty($_POST['username']) && !empty($_POST['password'])) {
-            $url = $api_url . 'eventis/headless/api/user_login';
+            $url = $api_url . 'eventis/headless/api/user_forgot_password';
             $headers = [
                 "Authorization: Basic " . $api_key,
                 "Content-Type: application/x-www-form-urlencoded",
@@ -47,35 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
             $result = curl_exec($curl);
             curl_close($curl);
-            $result = json_decode($result, true);
-
-            if ($result['status'] == 200) {
-
-                $user_id = $result['data']['user_id'];
-                $session_id = $result['data']['session_id'];
-                $logged_ip = $_SERVER['REMOTE_ADDR'];
-                $start_date_time = date('Y-m-d H:i:s');
-
-                $sql = "INSERT INTO user_log (session_id, user_id, logged_ip, start_date_time) VALUES (:session_id, :user_id, :logged_ip, :start_date_time)";
-                $stmt = $pdo->prepare($sql);
-                $stmt->bindParam(':session_id', $session_id);
-                $stmt->bindParam(':user_id', $user_id);
-                $stmt->bindParam(':logged_ip', $logged_ip);
-                $stmt->bindParam(':start_date_time', $start_date_time);
-
-                try{
-                    $stmt->execute();
-                    $_SESSION['logged_in'] = true;
-                    $_SESSION['user_id'] = $result['data']['user_id'];
-                    $_SESSION['session_id'] = $result['data']['session_id'];
-                    echo json_encode(['success' => true, 'message' => 'Login successful']);
-                }
-                catch(PDOException $e){
-                    echo json_encode(['success' => false,'message' => $e->getMessage()]);
-                }
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Invalid credentials']);
-            }
+            echo $result;
             exit;
         }
     }
@@ -88,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eventis - Login</title>
+    <title>Eventis - Forgot Password</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
@@ -104,14 +75,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="card shadow-lg" style="width: 400px;">
             <div class="card-body">
                 <h5 class="card-title text-center mb-4">Eventis</h5>
-                <form id="loginForm">
+                <form id="forgotPasswordForm">
                     <div class="mb-3">
                         <label for="username" class="form-label">Email/Username</label>
                         <input type="text" class="form-control" id="username" name="username" placeholder="Enter email or username" required>
                         <small id="usernameStatus" style="display:none;"></small>
                     </div>
                     <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
+                        <label for="password" class="form-label">New Password</label>
                         <div class="input-group">
                             <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
                             <button type="button" id="togglePassword" class="btn btn-outline-secondary">
@@ -119,16 +90,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </button>
                         </div>
                     </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" id="rememberMe" name="remember_me">
-                        <label class="form-check-label" for="rememberMe">Remember Me</label>
+                    <div class="mb-3">
+                        <label for="repeatPassword" class="form-label">Repeat Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="repeatPassword" name="repeatPassword" placeholder="Re-enter your password" required onpaste="return false;">
+                            <button type="button" id="toggleRepeatPassword" class="btn btn-outline-secondary">
+                                <i id="repeateyeIcon" class="bi-eye-slash"></i>
+                            </button>
+                        </div>
+                        <div id="passwordMismatch" class="text-danger mt-1" style="display: none;">Passwords do not match.</div>
                     </div>
                     <div class="d-grid mb-3">
-                        <button type="submit" class="btn btn-primary">Login</button>
+                        <button type="submit" class="btn btn-primary" name="submit_reset">Reset Password</button>
                     </div>
                     <div class="text-center">
-                        <small>Don't have an account? </small><a href="./register">Register Here</a><br>
-                        <small>Forgot Password? </small><a href="./forgot_password">Reset Here</a>
+                        <small>Remembered your password? </small><a href="./login">Login Here</a><br>
+                        <small class="ms-2">Don't have an account? </small><a href="./register">Register Here</a>
                     </div>
                 </form>
             </div>
@@ -139,6 +116,49 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $(document).ready(function() {
 
             const submitButton = $('button[type="submit"]');
+
+            $('#togglePassword').on('click', function() {
+                const passwordField = $('#password');
+                const eyeIcon = $('#eyeIcon');
+
+                if (passwordField.attr('type') === 'password') {
+                    passwordField.attr('type', 'text');
+                    eyeIcon.removeClass('bi-eye-slash').addClass('bi-eye');
+                } else {
+                    passwordField.attr('type', 'password');
+                    eyeIcon.removeClass('bi-eye').addClass('bi-eye-slash');
+                }
+            });
+
+            $('#toggleRepeatPassword').on('click', function() {
+                const repeatpasswordField = $('#repeatPassword');
+                const repeateyeIcon = $('#repeateyeIcon');
+
+                if (repeatpasswordField.attr('type') === 'password') {
+                    repeatpasswordField.attr('type', 'text');
+                    repeateyeIcon.removeClass('bi-eye-slash').addClass('bi-eye');
+                } else {
+                    repeatpasswordField.attr('type', 'password');
+                    repeateyeIcon.removeClass('bi-eye').addClass('bi-eye-slash');
+                }
+            });
+
+            $('#password, #repeatPassword').on('copy paste', function(e) {
+                e.preventDefault();
+            });
+
+            $('#repeatPassword').on('blur', function() {
+                const password = $('#password').val();
+                const repeatPassword = $(this).val();
+
+                if (password !== repeatPassword) {
+                    $('#passwordMismatch').show();
+                    submitButton.prop('disabled', true);
+                } else {
+                    $('#passwordMismatch').hide();
+                    submitButton.prop('disabled', false);
+                }
+            });
 
             $('#username').on('blur', function() {
                 let username = $(this).val();
@@ -156,32 +176,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     });
                 }
             });
-            
-            $('#loginForm').submit(function(e) {
+
+            $('#forgotPasswordForm').submit(function(e) {
                 e.preventDefault();
-                let formData = $(this).serialize() + '&login=true';
-                $.post('', formData, function(response) {
-                    let res = JSON.parse(response);
-                    Swal.fire({
-                        title: res.success ? 'Success' : 'Error',
-                        text: res.message,
-                        icon: res.success ? 'success' : 'error'
-                    }).then(() => {
-                        if (res.success) window.location.href = 'dashboard';
-                    });
+                let formData = $(this).serialize();
+                $.ajax({
+                    url: '',
+                    type: 'POST',
+                    data: formData + '&submit_reset=true',
+                    success: function(response) {
+                        console.log(response);
+                        let res = JSON.parse(response);
+                        Swal.fire({
+                            title: (res.status == 200) ? 'Success' : 'Error',
+                            text: res.message,
+                            icon:(res.status == 200) ? 'success' : 'error'
+                        }).then(() => {
+                            if (res.status == 200) window.location.href = 'login';
+                        });
+                    }
                 });
-            });
-            
-            $('#togglePassword').on('click', function() {
-                const passwordField = $('#password');
-                const eyeIcon = $('#eyeIcon');
-                if (passwordField.attr('type') === 'password') {
-                    passwordField.attr('type', 'text');
-                    eyeIcon.removeClass('bi-eye-slash').addClass('bi-eye');
-                } else {
-                    passwordField.attr('type', 'password');
-                    eyeIcon.removeClass('bi-eye').addClass('bi-eye-slash');
-                }
             });
         });
     </script>

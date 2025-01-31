@@ -162,6 +162,27 @@ class User {
             return json_encode(['status' => 'error', 'message' => 'Invalid username or password'], JSON_UNESCAPED_UNICODE);
         }
     }
+    public function forgot_password($username, $password){
+        $stmt = $this->pdo->prepare("SELECT * FROM {$this->table} WHERE (username = :username OR email = :email)");
+        $stmt->execute([':username' => $username, ':email' => $username]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if($user){
+            $new_password = $this->password_encrypt($password);
+            $stmt = $this->pdo->prepare("UPDATE {$this->table} SET password = :password WHERE unique_id = :unique_id");
+            try{
+                $this->pdo->beginTransaction();
+                $stmt->execute([':password' => $new_password, ':unique_id' => $user['unique_id']]);
+                $this->pdo->commit();
+                return json_encode(['status' =>'success','message' => 'Password has been reset successfully'], JSON_UNESCAPED_UNICODE);
+            }
+            catch(PDOException $e){
+                $this->pdo->rollBack();
+                return json_encode(['status' => 'error','message' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+            }
+        } else {
+            return json_encode(['status' => 'error','message' => 'User does not exist'], JSON_UNESCAPED_UNICODE);
+        }
+    }
     public function username_duplicate_check($username){
         $sql = "SELECT COUNT(*) FROM {$this->table} WHERE username = :username";
         $stmt = $this->pdo->prepare($sql);
@@ -172,6 +193,12 @@ class User {
         $sql = "SELECT COUNT(*) FROM {$this->table} WHERE email = :email";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([':email' => $email]);
+        return ($stmt->fetchColumn() > 0) ? true : false;
+    }
+    public function username_or_email_exists($username){
+        $sql = "SELECT COUNT(*) FROM {$this->table} WHERE (username = :username OR email = :email)";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':username' => $username, ':email' => $username]);
         return ($stmt->fetchColumn() > 0) ? true : false;
     }
     

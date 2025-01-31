@@ -1,9 +1,86 @@
 <?php
-    session_start();
-    if (isset($_SESSION['user_id']) && isset($_SESSION['session_id'])) {
-        header('Location: index.php');
-        exit;
+require_once "helper.php";
+session_start();
+auth_check();
+
+if($_SERVER['REQUEST_METHOD'] == 'POST'){
+
+    $api_key = $_ENV['HEADLESS_API_KEY'];
+    $api_username = $_ENV['HEADLESS_API_USERNAME'];
+    $api_url = $_ENV['APP_URL'];
+
+    if(isset($_POST['email_check'])){
+        if(isset($_POST['user_email']) && !empty($_POST['user_email'])){
+            $url = $api_url . 'eventis/headless/api/user_email_check';
+            $headers = array(
+                "Authorization: Basic " . $api_key,
+                "Content-Type: application/x-www-form-urlencoded",
+                "Username: " . $api_username
+            );
+            $data = http_build_query(array(
+                'email' => $_POST['user_email']
+            ));
+            $curl = curl_init($url);
+            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            $response = curl_exec($curl);
+            curl_close($curl);
+            echo $response;
+            exit;
+        }
     }
+    elseif(isset($_POST['username_check'])){
+        if(isset($_POST['user_username']) && !empty($_POST['user_username'])){
+            $url = $api_url . 'eventis/headless/api/user_username_check';
+            $headers = array(
+                "Authorization: Basic ". $api_key,
+                "Content-Type: application/x-www-form-urlencoded",
+                "Username: ". $api_username
+            );
+            $data = http_build_query(array(
+                'username' => $_POST['user_username']
+            ));
+            $curl = curl_init($url);
+            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            $response = curl_exec($curl);
+            curl_close($curl);
+            echo $response;
+            exit;
+        }
+    }
+    elseif(isset($_POST['user_register'])){
+        if(isset($_POST['user_name']) && isset($_POST['user_email']) && isset($_POST['user_username']) && isset($_POST['user_password']) && !empty($_POST['user_name']) && !empty($_POST['user_email']) && !empty($_POST['user_username']) && !empty($_POST['user_password'])){
+            $url = $api_url . 'eventis/headless/api/user_create';
+            $headers = array(
+                "Authorization: Basic ". $api_key,
+                "Content-Type: application/x-www-form-urlencoded",
+                "Username: ". $api_username
+            );
+            $data = http_build_query(array(
+                'name' => $_POST['user_name'],
+                'email' => $_POST['user_email'],
+                'username' => $_POST['user_username'],
+                'password' => $_POST['user_password']
+            ));
+            $curl = curl_init($url);
+            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            $response = curl_exec($curl);
+            $error = curl_error($curl);
+            curl_close($curl);
+            echo $response;
+            exit;
+        }   
+    }
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -16,8 +93,10 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-
     <style>
+        a {
+            text-decoration: none;
+        }
         .blinking {
             animation: blink 1s infinite;
         }
@@ -52,25 +131,36 @@
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
                         <div class="input-group">
-                            <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required onpaste="return false;">
                             <button type="button" id="togglePassword" class="btn btn-outline-secondary">
-                                <i id="eyeIcon" class="bi bi-eye-slash"></i>
+                                <i id="eyeIcon" class="bi-eye-slash"></i>
                             </button>
                         </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="repeatPassword" class="form-label">Repeat Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="repeatPassword" name="repeatPassword" placeholder="Re-enter your password" required onpaste="return false;">
+                            <button type="button" id="toggleRepeatPassword" class="btn btn-outline-secondary">
+                                <i id="repeateyeIcon" class="bi-eye-slash"></i>
+                            </button>
+                        </div>
+                        <div id="passwordMismatch" class="text-danger mt-1" style="display: none;">Passwords do not match.</div>
                     </div>
                     <div class="d-grid mb-3">
                         <button type="submit" class="btn btn-primary">Register</button>
                     </div>
                     <div class="text-center">
-                        <small>Already registered? <a href="login.php">Login here</a></small>
+                        <small>Already registered? <a href="login">Login Here</a></small>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-
     <script>
         $(document).ready(function() {
+
+            const submitButton = $('button[type="submit"]');
 
             $('#togglePassword').on('click', function() {
                 const passwordField = $('#password');
@@ -78,12 +168,41 @@
 
                 if (passwordField.attr('type') === 'password') {
                     passwordField.attr('type', 'text');
-                    eyeIcon.removeClass('bi bi-eye-fill');
-                    eyeIcon.addClass('bi bi-eye-slash');
+                    eyeIcon.removeClass('bi-eye-slash').addClass('bi-eye');
                 } else {
                     passwordField.attr('type', 'password');
-                    eyeIcon.removeClass('bi bi-eye-slash');
-                    eyeIcon.addClass('bi bi-eye-fill');
+                    eyeIcon.removeClass('bi-eye').addClass('bi-eye-slash');
+                }
+            });
+
+
+            $('#toggleRepeatPassword').on('click', function() {
+                const repeatpasswordField = $('#repeatPassword');
+                const repeateyeIcon = $('#repeateyeIcon');
+
+                if (repeatpasswordField.attr('type') === 'password') {
+                    repeatpasswordField.attr('type', 'text');
+                    eyeIcon.removeClass('bi-eye-slash').addClass('bi-eye');
+                } else {
+                    repeatpasswordField.attr('type', 'password');
+                    eyeIcon.removeClass('bi-eye').addClass('bi-eye-slash');
+                }
+            });
+
+            $('#password, #repeatPassword').on('copy paste', function(e) {
+                e.preventDefault();
+            });
+
+            $('#repeatPassword').on('blur', function() {
+                const password = $('#password').val();
+                const repeatPassword = $(this).val();
+
+                if (password !== repeatPassword) {
+                    $('#passwordMismatch').show();
+                    submitButton.prop('disabled', true);
+                } else {
+                    $('#passwordMismatch').hide();
+                    submitButton.prop('disabled', false);
                 }
             });
 
@@ -91,20 +210,21 @@
                 let email = $(this).val();
                 if (email) {
                     $.ajax({
-                        url: 'http://localhost/eventis/backend/api/user_email_check',
+                        url: "",
                         type: 'POST',
-                        headers: {
-                            "Authorization": "Basic YmF0X3Rlc3RpbmdfYXBpXzI=",
-                            "Content-Type": "application/x-www-form-urlencoded",
-                            "Username": "test_user"
+                        data: { 
+                            email_check: true,
+                            user_email: email 
                         },
-                        data: { email: email },
                         success: function(response) {
+                            console.log(response);
                             let data = JSON.parse(response);
                             if (data.status === 200 && data.data.exist) {
                                 $('#emailCheck').show();
+                                submitButton.prop('disabled', true);
                             } else {
                                 $('#emailCheck').hide();
+                                submitButton.prop('disabled', false);
                             }
                         }
                     });
@@ -114,20 +234,20 @@
                 let username = $(this).val();
                 if (username) {
                     $.ajax({
-                        url: 'http://localhost/eventis/backend/api/user_username_check',
+                        url: "",
                         type: 'POST',
-                        headers: {
-                            "Authorization": "Basic YmF0X3Rlc3RpbmdfYXBpXzI=",
-                            "Content-Type": "application/x-www-form-urlencoded",
-                            "Username": "test_user"
+                        data: { 
+                            username_check: true,
+                            user_username: username
                         },
-                        data: { username: username },
                         success: function(response) {
                             let data = JSON.parse(response);
                             if (data.status === 200 && data.data.exist) {
                                 $('#usernameCheck').show();
+                                submitButton.prop('disabled', true);
                             } else {
                                 $('#usernameCheck').hide();
+                                submitButton.prop('disabled', false);
                             }
                         }
                     });
@@ -151,23 +271,26 @@
                 }
 
                 $.ajax({
-                    url: "http://localhost/eventis/backend/api/user_create",
+                    url: "",
                     type: "POST",
-                    headers: {
-                        "Authorization": "Basic YmF0X3Rlc3RpbmdfYXBpXzI=",
-                        "Content-Type": "application/x-www-form-urlencoded",
-                        "Username": "test_user"
-                    },
                     data: {
-                        name: name,
-                        username: username,
-                        email: email,
-                        password: password
+                        user_register: true,
+                        user_name: name,
+                        user_username: username,
+                        user_email: email,
+                        user_password: password
                     },
                     success: function(response) {
                         response = JSON.parse(response);
                         if (response.status === 200) {
-                            window.location.href = "login.php";
+                            Swal.fire({
+                                icon: "success",
+                                title: "Registration Successful",
+                                text: "You have successfully registered.",
+                                showConfirmButton: false,
+                                timer: 3000
+                            });
+                            window.location.href = "loginusername";
                         } else {
                             Swal.fire({
                                 icon: "error",

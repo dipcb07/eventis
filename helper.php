@@ -39,4 +39,12 @@ function get_dhaka_time() {
     date_default_timezone_set('Asia/Dhaka');
     return date('Y-m-d H:i:s');
 }
+function auth_check(){
+    if (isset($_SESSION['logged_in']) && isset($_SESSION['user_id']) && isset($_SESSION['session_id'])) {
+        header('Location: ./');
+        exit;
+    }
+}
+loadEnv(realpath('.env'));
+
 ?>

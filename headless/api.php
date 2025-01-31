@@ -87,6 +87,23 @@ switch ($endpoint) {
         log_request($pdo, $username, $method, 'Success', $endpoint, 'user logged in');
         handle_response(200, "user logged in successfully", ['user_id' => $response['user_id'], 'session_id' => $response['session_id']]);
         break;
+    case 'user_forgot_password':
+        $user = new api\User($pdo);
+        $required_parameters = ['username', 'password'];
+        $data = get_data($method, $required_parameters);
+        if (!$data) {
+            log_request($pdo, $username, $method, 'Failed', $endpoint, 'Missing required parameters');
+            handle_response(400, 'Missing required parameters');
+        }
+        $response = $user->forgot_password($data['username'], $data['password']);
+        $response = json_decode($response, true);
+        if ($response['status'] === 'error') {
+            log_request($pdo, $username, $method, 'Failed', $endpoint, $response['message']);
+            handle_response(500, $response['message']);
+        }
+        log_request($pdo, $username, $method, 'Success', $endpoint, 'password reset successful');
+        handle_response(200, "password reset successful");
+        break;
     case 'user_username_check':
         $user = new api\User($pdo);
         $required_parameters = ['username'];
@@ -122,6 +139,25 @@ switch ($endpoint) {
         else{
             log_request($pdo, $username, $method, 'Failed', $endpoint, 'email not found');
             handle_response(200, 'email not found', ['exist' => false]);
+        }
+        break;
+    
+    case 'user_exist_check':
+        $user = new api\User($pdo);
+        $required_parameters = ['username'];
+        $data = get_data($method, $required_parameters);
+        if (!$data) {
+            log_request($pdo, $username, $method, 'Failed', $endpoint, 'Missing required parameters');
+            handle_response(400, 'Missing required parameters');
+        }
+        $response = $user->username_or_email_exists($data['username']);
+        if($response){
+            log_request($pdo, $username, $method, 'Success', $endpoint, 'user exists');
+            handle_response(200, "user exist", ['exist' => true]);
+        }
+        else{
+            log_request($pdo, $username, $method, 'Failed', $endpoint, 'user not found');
+            handle_response(200, 'user not found', ['exist' => false]);
         }
         break;
     case 'event_create':
