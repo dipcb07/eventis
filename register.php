@@ -5,10 +5,6 @@ auth_check();
 
 if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
-    $api_key = $_ENV['HEADLESS_API_KEY'];
-    $api_username = $_ENV['HEADLESS_API_USERNAME'];
-    $api_url = $_ENV['APP_URL'];
-
     if(isset($_POST['email_check'])){
         if(isset($_POST['user_email']) && !empty($_POST['user_email'])){
             $url = $api_url . 'eventis/headless/api/user_email_check';
@@ -64,6 +60,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
             $data = http_build_query(array(
                 'name' => $_POST['user_name'],
                 'email' => $_POST['user_email'],
+                'org' => $_POST['org'],
                 'username' => $_POST['user_username'],
                 'password' => $_POST['user_password']
             ));
@@ -127,6 +124,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                         <label for="email" class="form-label">Email</label>
                         <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
                         <div id="emailCheck" class="text-danger" style="display:none;">Email already exists.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="org" class="form-label">Email</label>
+                        <input type="org" class="form-control" id="org" name="org" placeholder="Enter your organization" required>
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
@@ -258,6 +259,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
                 const name = $("#name").val();
                 const username = $("#username").val();
+                const org = $("#org").val();
                 const email = $("#email").val();
                 const password = $("#password").val();
 
@@ -278,7 +280,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                         user_name: name,
                         user_username: username,
                         user_email: email,
-                        user_password: password
+                        user_password: password,
+                        user_org: org
                     },
                     success: function(response) {
                         response = JSON.parse(response);

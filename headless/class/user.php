@@ -8,12 +8,13 @@ class User {
 
     private PDO $pdo;
     private string $table = 'users';
+    private string $log_table = 'user_log';
 
     public function __construct(PDO $pdo) {
         $this->pdo = $pdo;
     }
 
-    public function create(string $unique_id, string $name, string $username, string $email, string $password): string {
+    public function create(string $unique_id, string $name, string $username, string $email, string $password, string $org): string {
         
         $create_date_time = date('Y-m-d H:i:s');
         $update_date_time = null;
@@ -30,8 +31,8 @@ class User {
         }
 
         try {
-            $sql = "INSERT INTO {$this->table} (unique_id, is_active, name, username, email, email_confirmation, password, create_date_time, update_date_time) 
-                    VALUES (:unique_id, :is_active, :name, :username, :email, :email_confirmation, :password, :create_date_time, :update_date_time)";
+            $sql = "INSERT INTO {$this->table} (unique_id, is_active, name, username, email, org, email_confirmation, password, create_date_time, update_date_time) 
+                    VALUES (:unique_id, :is_active, :name, :username, :email, :org, :email_confirmation, :password, :create_date_time, :update_date_time)";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
                 ':unique_id' => $unique_id,
@@ -39,6 +40,7 @@ class User {
                 ':name' => $name,
                 ':username' => $username,
                 ':email' => $email,
+                ':org' => $org,
                 ':email_confirmation' => $email_confirmation,
                 ':password' => $password,
                 ':create_date_time' => $create_date_time,
@@ -156,10 +158,43 @@ class User {
         $stmt->execute([':username' => $username, ':email' => $username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         if($user && password_verify($password, $user['password'])){
+            $this->user_log_update($user['unique_id']);
             $session_id = $this->generateSessionCode();
-            return json_encode(['status' => 'success', 'session_id' => $session_id, 'user_id' => $user['unique_id']], JSON_UNESCAPED_UNICODE);
+            $logged_ip = $_SERVER['REMOTE_ADDR'];
+            $start_date_time = date('Y-m-d H:i:s');
+            $sql = "INSERT INTO {$this->log_table} (session_id, user_id, logged_ip, start_date_time) VALUES (:session_id, :user_id, :logged_ip, :start_date_time)";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->bindParam(':session_id', $session_id);
+            $stmt->bindParam(':user_id', $user['unique_id']);
+            $stmt->bindParam(':logged_ip', $logged_ip);
+            $stmt->bindParam(':start_date_time', $start_date_time);
+            try{
+                $stmt->execute();
+                return json_encode(['status' => 'success', 'session_id' => $session_id, 'user_id' => $user['unique_id']], JSON_UNESCAPED_UNICODE);
+            }
+            catch(PDOException $e){
+                return json_encode(['status' => 'error','message' => $e->getMessage()]);
+            }
         } else {
             return json_encode(['status' => 'error', 'message' => 'Invalid username or password'], JSON_UNESCAPED_UNICODE);
+        }
+    }
+    public function user_log_update($user_id, $session_id = NULL){
+        $end_date_time = date('Y-m-d H:i:s');
+        $sql = "UPDATE {$this->log_table} SET end_date_time = :end_date_time WHERE user_id = :user_id AND end_date_time IS NULL";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindParam(':end_date_time', $end_date_time);
+        $stmt->bindParam(':user_id', $user_id);
+        if($session_id){
+            $sql.= " AND session_id = :session_id";
+            $stmt->bindParam(':session_id', $session_id);
+        }
+        try{
+            $stmt->execute();
+            return json_encode(['status' => 'success','message' => 'User logged out successfully']);
+        }
+        catch(PDOException $e){
+            return json_encode(['status' => 'error','message' => $e->getMessage()]);
         }
     }
     public function forgot_password($username, $password){
@@ -201,7 +236,6 @@ class User {
         $stmt->execute([':username' => $username, ':email' => $username]);
         return ($stmt->fetchColumn() > 0) ? true : false;
     }
-    
     private function generateSessionCode() {
         $timestamp = time();
         $randomNumber = rand(100000, 999000);

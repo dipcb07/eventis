@@ -1,12 +1,7 @@
 <?php
+require_once 'helper.php';
 session_start();
 auth_check();
-require_once 'helper.php';
-
-$api_key = $_ENV['HEADLESS_API_KEY'];
-$api_username = $_ENV['HEADLESS_API_USERNAME'];
-$api_url = $_ENV['APP_URL'];
-$pdo = get_db($_ENV['DATABASE_HOST'], $_ENV['DATABASE_USER'], $_ENV['DATABASE_PASSWORD'], $_ENV['DATABASE_NAME'], $_ENV['DATABASE_CHARSET']);    
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['check_username'])) {
@@ -48,31 +43,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $result = curl_exec($curl);
             curl_close($curl);
             $result = json_decode($result, true);
-
             if ($result['status'] == 200) {
-
                 $user_id = $result['data']['user_id'];
                 $session_id = $result['data']['session_id'];
-                $logged_ip = $_SERVER['REMOTE_ADDR'];
-                $start_date_time = date('Y-m-d H:i:s');
-
-                $sql = "INSERT INTO user_log (session_id, user_id, logged_ip, start_date_time) VALUES (:session_id, :user_id, :logged_ip, :start_date_time)";
-                $stmt = $pdo->prepare($sql);
-                $stmt->bindParam(':session_id', $session_id);
-                $stmt->bindParam(':user_id', $user_id);
-                $stmt->bindParam(':logged_ip', $logged_ip);
-                $stmt->bindParam(':start_date_time', $start_date_time);
-
-                try{
-                    $stmt->execute();
-                    $_SESSION['logged_in'] = true;
-                    $_SESSION['user_id'] = $result['data']['user_id'];
-                    $_SESSION['session_id'] = $result['data']['session_id'];
-                    echo json_encode(['success' => true, 'message' => 'Login successful']);
-                }
-                catch(PDOException $e){
-                    echo json_encode(['success' => false,'message' => $e->getMessage()]);
-                }
+                $_SESSION['logged_in'] = true;
+                $_SESSION['user_id'] = $result['data']['user_id'];
+                $_SESSION['session_id'] = $result['data']['session_id'];
+                echo json_encode(['success' => true, 'message' => 'Login successful']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Invalid credentials']);
             }

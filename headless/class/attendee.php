@@ -70,7 +70,7 @@ class Attendee {
 
     public function listAttendees(string $event_id): string {
         try {
-            $stmt = $this->pdo->prepare("SELECT name, email, registration_date_time FROM {$this->table} WHERE event_id = :event_id");
+            $stmt = $this->pdo->prepare("SELECT is_active, unique_id, name, email, registration_date_time FROM {$this->table} WHERE event_id = :event_id");
             $stmt->execute([':event_id' => $event_id]);
             $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -81,30 +81,39 @@ class Attendee {
 
         return json_encode($response, JSON_UNESCAPED_UNICODE);
     }
-    public function update(string $unique_id, string $name, string $email, int $is_active): string {
+    public function attendee_count(string $event_id): string{
         try {
-            $sql = "UPDATE {$this->table} SET name = :name, email = :email, is_active = :is_active WHERE unique_id = :unique_id";
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([
-                ':unique_id' => $unique_id,
-                ':name' => $name,
-                ':email' => $email,
-                ':is_active' => $is_active
-            ]);
-
-            $response = ['status' => 'success', 'message' => 'Attendee updated successfully'];
+            $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM {$this->table} WHERE event_id = :event_id");
+            $stmt->execute([':event_id' => $event_id]);
+            $count = $stmt->fetchColumn();
+            $response = ['status' => 'success', 'data' => $count];
+            
         } catch (PDOException $e) {
             $response = ['status' => 'error', 'message' => $e->getMessage()];
         }
         return json_encode($response, JSON_UNESCAPED_UNICODE);
     }
-
-    public function delete(string $unique_id): string {
+    public function attendee_status_update(string $event_id, string $attendee_id, string $status): string{
         try {
-            $sql = "DELETE FROM {$this->table} WHERE unique_id = :unique_id";
+            $sql = "UPDATE {$this->table} SET is_active = :status WHERE event_id = :event_id AND unique_id = :attendee_id";
             $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([':unique_id' => $unique_id]);
-
+            $stmt->execute([
+                ':status' => $status,
+                ':event_id' => $event_id,
+                ':attendee_id' => $attendee_id,
+            ]);
+            $response = ['status' => 'success', 'message' => 'Attendee status updated successfully'];
+            
+        } catch (PDOException $e) {
+            $response = ['status' => 'error', 'message' => $e->getMessage()];
+        }
+        return json_encode($response, JSON_UNESCAPED_UNICODE);
+    }
+    public function delete(string $event_id, string $unique_id): string {
+        try {
+            $sql = "DELETE FROM {$this->table} WHERE event_id = :event_id AND unique_id = :unique_id";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([':event_id' => $event_id, ':unique_id' => $unique_id]);
             $response = ['status' => 'success', 'message' => 'Attendee deleted successfully'];
         } catch (PDOException $e) {
             $response = ['status' => 'error', 'message' => $e->getMessage()];

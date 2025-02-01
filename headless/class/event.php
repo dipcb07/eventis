@@ -1,8 +1,10 @@
 <?php
 namespace api;
+require_once "attendee.php";
 
 use PDO;
 use PDOException;
+use \api\Attendee;
 
 class Event {
 
@@ -21,7 +23,7 @@ class Event {
         $create_date_time = date('Y-m-d H:i:s');
         $max_capacity = (int)$max_capacity;
         $is_active = 1;
-        $user_id = (int)$user_id;
+        $user_id = $user_id;
         $response = [];
 
         $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM $this->table WHERE name = :name AND start_date = :start_date AND end_date = :end_date AND start_time = :start_time AND end_time = :end_time"); 
@@ -68,7 +70,7 @@ class Event {
 
     public function update(string $unique_id, array $data) {
         
-        $sql1 = "SELECT COUNT(*) FROM $this->table WHERE $unique_id = :unique_id"; 
+        $sql1 = "SELECT COUNT(*) FROM $this->table WHERE unique_id = :unique_id"; 
         $stmt1 = $this->pdo->prepare($sql1);
         $stmt1->execute([':unique_id' => $unique_id]);
         $count = $stmt1->fetchColumn();
@@ -137,7 +139,7 @@ class Event {
     }
 
     public function delete(string $unique_id) {
-        $sql1 = "SELECT COUNT(*) FROM $this->table WHERE $unique_id = :unique_id"; 
+        $sql1 = "SELECT COUNT(*) FROM $this->table WHERE unique_id = :unique_id"; 
         $stmt1 = $this->pdo->prepare($sql1);
         $stmt1->execute([':unique_id' => $unique_id]);
         $count = $stmt1->fetchColumn();
@@ -173,11 +175,64 @@ class Event {
         try {
             $stmt = $this->pdo->prepare("SELECT * FROM $this->table WHERE user_id = :user_id");
             $stmt->execute([':user_id' => $user_unique_id]);
-            $response = ['status' => 'success', 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)];
+            $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $eventsWithAttendees = [];
+
+            $attendee = new Attendee($this->pdo);
+            foreach ($events as $event) {
+                $event_id = $event['unique_id'];
+                $start_date = $event['start_date'];
+                $start_time = $event['start_time'];
+                $end_date = $event['end_date'];
+                $end_time = $event['end_time'];
+                $attendeeResponse = $attendee->attendee_count($event_id);
+                $attendeeData = json_decode($attendeeResponse, true);
+                $event['start_datetime'] = "$start_date $start_time";
+                $event['end_datetime'] = "$end_date $end_time";
+                $event['attendee_count'] = $attendeeData['data'];
+                $eventsWithAttendees[] = $event;
+            }
+            $response = ['status' => 'success', 'data' => $eventsWithAttendees];
         } catch (PDOException $e) {
             $response = ['status' => 'error', 'message' => $e->getMessage()];
         }
-
+        return json_encode($response, JSON_UNESCAPED_UNICODE);
+    }
+    public function eventDetails(string $event_id){
+        try {
+            $stmt = $this->pdo->prepare("SELECT * FROM $this->table WHERE unique_id = :event_id AND is_active = 1");
+            $stmt->execute([':event_id' => $event_id]);
+            $event = $stmt->fetch(PDO::FETCH_ASSOC);
+            $start_date = $event['start_date'];
+            $start_time = $event['start_time'];
+            $end_date = $event['end_date'];
+            $end_time = $event['end_time'];
+            $attendee = new Attendee($this->pdo);
+            $attendeeResponse = $attendee->attendee_count($event_id);
+            $attendeeData = json_decode($attendeeResponse, true);
+            $event['attendee_count'] = $attendeeData['data'];
+            $user = new User($this->pdo);
+            $userResponse = $user->getinfo($event['user_id']);
+            $userData = json_decode($userResponse, true);
+            $event['user_name'] = $userData['data']['name'];
+            $event['user_org'] = $userData['data']['org'];
+            $event['start_datetime'] = "$start_date $start_time";
+            $event['end_datetime'] = "$end_date $end_time";
+            $response = ['status' => 'success', 'data' => $event];
+        } catch (PDOException $e) {
+            $response = ['status' => 'error','message' => $e->getMessage()];
+        }
+        return json_encode($response, JSON_UNESCAPED_UNICODE);
+    }
+    public function status_change(string $event_id, int $status){
+        try {
+            $sql = "UPDATE $this->table SET is_active = :status WHERE unique_id = :event_id";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([':event_id' => $event_id, ':status' => $status]);
+            $response = ['status' => 'success','message' => 'Event disabled successfully'];
+        } catch (PDOException $e) {
+            $response = ['status' => 'error','message' => $e->getMessage()];
+        }
         return json_encode($response, JSON_UNESCAPED_UNICODE);
     }
 }

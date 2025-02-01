@@ -1,11 +1,5 @@
 <?php
-session_start();
-auth_check();
 require_once 'helper.php';
-
-$api_key = $_ENV['HEADLESS_API_KEY'];
-$api_username = $_ENV['HEADLESS_API_USERNAME'];
-$api_url = $_ENV['APP_URL'];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['check_username'])) {
