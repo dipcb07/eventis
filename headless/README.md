@@ -1,9 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>API Documentation</title>
-</head>
 <body>
   <h1>API Documentation</h1>
   <p>All endpoints use the HTTP POST method and accept JSON-formatted request bodies.</p>
