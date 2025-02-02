@@ -3,38 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>API Documentation</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      line-height: 1.6;
-      color: #333;
-    }
-    h1, h2, h3 {
-      color: #444;
-    }
-    code {
-      background-color: #f4f4f4;
-      padding: 2px 4px;
-      border-radius: 4px;
-      font-family: Consolas, monospace;
-    }
-    pre {
-      background-color: #f4f4f4;
-      padding: 10px;
-      border-radius: 4px;
-      overflow-x: auto;
-    }
-    .endpoint {
-      margin-bottom: 40px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid #ddd;
-    }
-    .example-title {
-      font-weight: bold;
-      margin-top: 10px;
-    }
-  </style>
 </head>
 <body>
   <h1>API Documentation</h1>
