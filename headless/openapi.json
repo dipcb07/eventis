@@ -1,0 +1,1197 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Event & User Management API",
+    "version": "1.0.0",
+    "description": "This API provides endpoints for user management, event management, and attendee registration. All requests are made via POST."
+  },
+  "servers": [
+    {
+      "url": "http://localhost/api",
+      "description": "Local server"
+    }
+  ],
+  "paths": {
+    "/test_api": {
+      "post": {
+        "summary": "Test API",
+        "description": "Verifies API connectivity.",
+        "responses": {
+          "200": {
+            "description": "API test successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "message": "API test successful",
+                  "data": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user_create": {
+      "post": {
+        "summary": "Create User",
+        "description": "Creates a new user with the provided details.",
+        "requestBody": {
+          "description": "User details",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "message": "user created successfully",
+                  "data": {
+                    "user_id": "generated_unique_id"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing parameters"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/user_update": {
+      "post": {
+        "summary": "Update User",
+        "description": "Updates user details.",
+        "requestBody": {
+          "description": "User update data. 'unique_id' is required.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "message": "user updated successfully",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/user_delete": {
+      "post": {
+        "summary": "Delete User",
+        "description": "Deletes a user using the provided unique_id.",
+        "requestBody": {
+          "description": "Unique ID of the user to delete.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserDeleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "message": "user deleted successfully",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/user_login": {
+      "post": {
+        "summary": "User Login",
+        "description": "Authenticates the user and returns session details.",
+        "requestBody": {
+          "description": "Login credentials",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User logged in successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "message": "user logged in successfully",
+                  "data": {
+                    "user_id": "user_unique_id",
+                    "session_id": "session_token"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/user_logout": {
+      "post": {
+        "summary": "User Logout",
+        "description": "Logs out the user by updating the user log.",
+        "requestBody": {
+          "description": "Logout details",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLogoutRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User logged out successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "message": "user logged out successfully",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/user_forgot_password": {
+      "post": {
+        "summary": "Forgot Password",
+        "description": "Resets the user password.",
+        "requestBody": {
+          "description": "Username and new password",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserForgotPasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "message": "password reset successful",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/user_username_check": {
+      "post": {
+        "summary": "Check Username",
+        "description": "Checks if a username already exists.",
+        "requestBody": {
+          "description": "Username to check",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UsernameCheckRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Username check result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                },
+                "examples": {
+                  "exists": {
+                    "summary": "Username exists",
+                    "value": {
+                      "status": "success",
+                      "message": "username exist",
+                      "data": {
+                        "exist": true
+                      }
+                    }
+                  },
+                  "notExists": {
+                    "summary": "Username not found",
+                    "value": {
+                      "status": "failed",
+                      "message": "username not found",
+                      "data": {
+                        "exist": false
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          }
+        }
+      }
+    },
+    "/user_email_check": {
+      "post": {
+        "summary": "Check Email",
+        "description": "Checks if an email already exists.",
+        "requestBody": {
+          "description": "Email to check",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailCheckRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email check result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                },
+                "examples": {
+                  "exists": {
+                    "summary": "Email exists",
+                    "value": {
+                      "status": "success",
+                      "message": "email exist",
+                      "data": {
+                        "exist": true
+                      }
+                    }
+                  },
+                  "notExists": {
+                    "summary": "Email not found",
+                    "value": {
+                      "status": "failed",
+                      "message": "email not found",
+                      "data": {
+                        "exist": false
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          }
+        }
+      }
+    },
+    "/user_exist_check": {
+      "post": {
+        "summary": "Check User Existence",
+        "description": "Checks if a user exists by username (or email).",
+        "requestBody": {
+          "description": "Username to check",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserExistCheckRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User existence check result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                },
+                "examples": {
+                  "exists": {
+                    "summary": "User exists",
+                    "value": {
+                      "status": "success",
+                      "message": "user exist",
+                      "data": {
+                        "exist": true
+                      }
+                    }
+                  },
+                  "notExists": {
+                    "summary": "User not found",
+                    "value": {
+                      "status": "failed",
+                      "message": "user not found",
+                      "data": {
+                        "exist": false
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          }
+        }
+      }
+    },
+    "/event_create": {
+      "post": {
+        "summary": "Create Event",
+        "description": "Creates a new event.",
+        "requestBody": {
+          "description": "Event details",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Event created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "message": "event created successfully",
+                  "data": {
+                    "event_id": "generated_unique_id"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/event_update": {
+      "post": {
+        "summary": "Update Event",
+        "description": "Updates event details.",
+        "requestBody": {
+          "description": "Event update data; 'unique_id' is required.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Event updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "message": "event updated successfully",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/event_delete": {
+      "post": {
+        "summary": "Delete Event",
+        "description": "Deletes an event using the provided event_id.",
+        "requestBody": {
+          "description": "Event ID to delete",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventDeleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Event deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "message": "event deleted successfully",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/event_list": {
+      "post": {
+        "summary": "List Events",
+        "description": "Lists events associated with a user.",
+        "requestBody": {
+          "description": "User ID to list events for",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventListRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "List of events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "message": "List of events",
+                  "data": [
+                    {
+                      "event_id": "event1",
+                      "name": "Event One"
+                    },
+                    {
+                      "event_id": "event2",
+                      "name": "Event Two"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          }
+        }
+      }
+    },
+    "/event_single_details": {
+      "post": {
+        "summary": "Event Details",
+        "description": "Retrieves details for a single event.",
+        "requestBody": {
+          "description": "Event ID",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventDetailsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Single event details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          }
+        }
+      }
+    },
+    "/event_status_change": {
+      "post": {
+        "summary": "Change Event Status",
+        "description": "Changes the status of an event.",
+        "requestBody": {
+          "description": "Event ID and new status",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventStatusChangeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Event status updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "message": "event disabled successfully",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/attendee_register": {
+      "post": {
+        "summary": "Register Attendee",
+        "description": "Registers an attendee for an event.",
+        "requestBody": {
+          "description": "Attendee details",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttendeeRegisterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Attendee registered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "message": "attendee registered successfully",
+                  "data": {
+                    "attendee_id": "generated_unique_id"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/attendee_delete": {
+      "post": {
+        "summary": "Delete Attendee",
+        "description": "Deletes an attendee from an event.",
+        "requestBody": {
+          "description": "Event ID and attendee unique ID",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttendeeDeleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Attendee deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "message": "attendee deleted successfully",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/attendee_status_change": {
+      "post": {
+        "summary": "Change Attendee Status",
+        "description": "Updates the status of an attendee. (Note: In the PHP code, this endpoint falls through to attendee_list if no error occurs.)",
+        "requestBody": {
+          "description": "Event ID, attendee unique ID, and new status",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttendeeStatusChangeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Attendee status updated successfully (or list of attendees returned if falling through)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/attendee_list": {
+      "post": {
+        "summary": "List Attendees",
+        "description": "Lists all attendees for a given event.",
+        "requestBody": {
+          "description": "Event ID to list attendees for",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttendeeListRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "List of attendees",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "message": "List of attendees",
+                  "data": [
+                    {
+                      "attendee_id": "attendee1",
+                      "name": "Attendee One",
+                      "email": "attendee1@example.com"
+                    },
+                    {
+                      "attendee_id": "attendee2",
+                      "name": "Attendee Two",
+                      "email": "attendee2@example.com"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "GenericResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Result status (e.g. success or error)"
+          },
+          "message": {
+            "type": "string",
+            "description": "Detailed message regarding the response"
+          },
+          "data": {
+            "type": "object",
+            "description": "Additional data returned by the API"
+          }
+        }
+      },
+      "UserCreateRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "username",
+          "password",
+          "email"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "org": {
+            "type": "string",
+            "description": "Optional organization name"
+          }
+        }
+      },
+      "UserUpdateRequest": {
+        "type": "object",
+        "required": [
+          "unique_id"
+        ],
+        "properties": {
+          "unique_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "org": {
+            "type": "string"
+          }
+        }
+      },
+      "UserDeleteRequest": {
+        "type": "object",
+        "required": [
+          "unique_id"
+        ],
+        "properties": {
+          "unique_id": {
+            "type": "string"
+          }
+        }
+      },
+      "UserLoginRequest": {
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "UserLogoutRequest": {
+        "type": "object",
+        "required": [
+          "session_id",
+          "user_id"
+        ],
+        "properties": {
+          "session_id": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "string"
+          }
+        }
+      },
+      "UserForgotPasswordRequest": {
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "UsernameCheckRequest": {
+        "type": "object",
+        "required": [
+          "username"
+        ],
+        "properties": {
+          "username": {
+            "type": "string"
+          }
+        }
+      },
+      "EmailCheckRequest": {
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          }
+        }
+      },
+      "UserExistCheckRequest": {
+        "type": "object",
+        "required": [
+          "username"
+        ],
+        "properties": {
+          "username": {
+            "type": "string"
+          }
+        }
+      },
+      "EventCreateRequest": {
+        "type": "object",
+        "required": [
+          "user_id",
+          "name",
+          "description",
+          "start_date_time",
+          "end_date_time",
+          "max_capacity"
+        ],
+        "properties": {
+          "user_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "start_date_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_date_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "max_capacity": {
+            "type": "integer"
+          }
+        }
+      },
+      "EventUpdateRequest": {
+        "type": "object",
+        "required": [
+          "unique_id"
+        ],
+        "properties": {
+          "unique_id": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "start_date_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_date_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "max_capacity": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "EventDeleteRequest": {
+        "type": "object",
+        "required": [
+          "event_id"
+        ],
+        "properties": {
+          "event_id": {
+            "type": "string"
+          }
+        }
+      },
+      "EventListRequest": {
+        "type": "object",
+        "required": [
+          "user_id"
+        ],
+        "properties": {
+          "user_id": {
+            "type": "string"
+          }
+        }
+      },
+      "EventDetailsRequest": {
+        "type": "object",
+        "required": [
+          "event_id"
+        ],
+        "properties": {
+          "event_id": {
+            "type": "string"
+          }
+        }
+      },
+      "EventStatusChangeRequest": {
+        "type": "object",
+        "required": [
+          "event_id",
+          "status"
+        ],
+        "properties": {
+          "event_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "AttendeeRegisterRequest": {
+        "type": "object",
+        "required": [
+          "event_id",
+          "name",
+          "email"
+        ],
+        "properties": {
+          "event_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          }
+        }
+      },
+      "AttendeeDeleteRequest": {
+        "type": "object",
+        "required": [
+          "event_id",
+          "unique_id"
+        ],
+        "properties": {
+          "event_id": {
+            "type": "string"
+          },
+          "unique_id": {
+            "type": "string"
+          }
+        }
+      },
+      "AttendeeStatusChangeRequest": {
+        "type": "object",
+        "required": [
+          "event_id",
+          "unique_id",
+          "status"
+        ],
+        "properties": {
+          "event_id": {
+            "type": "string"
+          },
+          "unique_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "AttendeeListRequest": {
+        "type": "object",
+        "required": [
+          "event_id"
+        ],
+        "properties": {
+          "event_id": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
