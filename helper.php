@@ -31,12 +31,12 @@ function auth_check() {
     $isAuthenticated = isset($_SESSION['logged_in']) && isset($_SESSION['user_id']) && isset($_SESSION['session_id']);
     $currentPage = $_SERVER['REQUEST_URI'];
     if (!$isAuthenticated) {
-        if (strpos($currentPage, 'eventis/login') === false) {
+        if ((strpos($currentPage, 'eventis/login') === false) && (strpos($currentPage, 'eventis/register') === false)){
             header('Location: ./login');
             exit;
         }
     }
-    if ($isAuthenticated && strpos($currentPage, 'eventis/login') !== false) {
+    if ($isAuthenticated && strpos($currentPage, 'eventis/login') !== false && strpos($currentPage, 'eventis/register') !== false) {
         header('Location: ./dashboard');
         exit;
     }

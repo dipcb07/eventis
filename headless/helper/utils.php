@@ -49,7 +49,7 @@ function handle_response($status, $message, $data = []) {
 function authenticate($pdo, $apiName) {
     $headers = apache_request_headers();
     $authorizationHeader = isset($headers['Authorization']) ? $headers['Authorization'] : null;
-    $username = isset($headers['Username']) ? strtolower($headers['Username']) : null;
+    $username = isset($headers['Username']) ? strtolower($headers['Username']) : strtolower($headers['username']);
 
     if (!$authorizationHeader || !$username) {
         $response = "Authorization/Username missing";

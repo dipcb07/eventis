@@ -19,10 +19,11 @@ $dbcharset = $_ENV['DATABASE_CHARSET'] ?? 'utf8mb4';
 
 $allowed_methods = ['GET', 'POST'];
 $allowed_endpoints = [
+    'test_api',
     'user_create', 'user_update', 'user_delete', 'user_login', 'user_forgot_password', 
     'user_exist_check', 'user_username_check', 'user_email_check', 
     'event_create', 'event_update', 'event_delete', 'event_list', 'event_single_details', 'event_status_change',
-    'attendee_register','attendee_update', 'attendee_delete', 'attendee_list'
+    'attendee_register','attendee_update', 'attendee_delete', 'attendee_list', 'attendee_status_change'
 ];
 
 set_default_timezone($timezone);

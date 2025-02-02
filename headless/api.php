@@ -6,7 +6,10 @@ require_once "class/user.php";
 $username = authenticate($pdo, $endpoint);
 
 switch ($endpoint) {
-
+    case 'test_api':
+        log_request($pdo, $username, $method, 'Success', $endpoint, 'API test successful');
+        handle_response(200, "API test successful");
+        break;
     case 'user_create':
         $user = new api\User($pdo);        
         $required_parameters = ['name', 'username', 'password', 'email'];

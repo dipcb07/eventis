@@ -60,7 +60,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
             $data = http_build_query(array(
                 'name' => $_POST['user_name'],
                 'email' => $_POST['user_email'],
-                'org' => $_POST['org'],
+                'org' => $_POST['user_org'],
                 'username' => $_POST['user_username'],
                 'password' => $_POST['user_password']
             ));
@@ -126,8 +126,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                         <div id="emailCheck" class="text-danger" style="display:none;">Email already exists.</div>
                     </div>
                     <div class="mb-3">
-                        <label for="org" class="form-label">Email</label>
-                        <input type="org" class="form-control" id="org" name="org" placeholder="Enter your organization" required>
+                        <label for="org" class="form-label">Organization</label>
+                        <input type="text" class="form-control" id="org" name="org" placeholder="Enter your organization" required>
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
@@ -218,7 +218,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                             user_email: email 
                         },
                         success: function(response) {
-                            console.log(response);
                             let data = JSON.parse(response);
                             if (data.status === 200 && data.data.exist) {
                                 $('#emailCheck').show();
@@ -291,9 +290,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                                 title: "Registration Successful",
                                 text: "You have successfully registered.",
                                 showConfirmButton: false,
-                                timer: 3000
+                                timer: 5000
                             });
-                            window.location.href = "loginusername";
+                            window.location.href = "login";
                         } else {
                             Swal.fire({
                                 icon: "error",
